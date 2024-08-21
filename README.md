@@ -8,29 +8,6 @@
 
 > Using LoRA to fine tune on illustration dataset : $W = W_0 + \alpha \Delta W$, where $\alpha$ is the merging ratio. Above gif is scaling alpha from 0 to 1. Setting alpha to 0 is same as using the original model, and setting alpha to 1 is same as using the fully fine-tuned model.
 
-<!-- #region -->
-<p align="center">
-<img  src="contents/lora_pti_example.jpg">
-</p>
-<!-- #endregion -->
-
-> SD 1.5 PTI on Kiriko, the game character, Various Prompts.
-
-<!-- #region -->
-<p align="center">
-<img  src="contents/disney_lora.jpg">
-</p>
-<!-- #endregion -->
-
-> `"baby lion in style of <s1><s2>"`, with disney-style LoRA model.
-
-<!-- #region -->
-<p align="center">
-<img  src="contents/pop_art.jpg">
-</p>
-<!-- #endregion -->
-
-> `"superman, style of <s1><s2>"`, with pop-art style LoRA model.
 
 ## Main Features
 
