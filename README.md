@@ -127,7 +127,7 @@ Enough of the lengthy introduction, let's get to the code.
 # Installation
 
 ```bash
-pip install git+https://github.com/cloneofsimo/lora.git
+pip install git+https://github.com/LiangXin1001/lora.git
 ```
 
 # Getting Started
