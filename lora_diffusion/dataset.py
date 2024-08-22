@@ -228,6 +228,7 @@ class PivotalTuningDatasetCapation(Dataset):
         self.num_instance_images = len(self.instance_images_path)
         self.token_map = token_map
 
+
         self.use_template = use_template
         if use_template is not None:
             self.templates = TEMPLATE_MAP[use_template]
