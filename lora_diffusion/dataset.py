@@ -1,14 +1,14 @@
 import random
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
-
+import os
 from PIL import Image
 from torch import zeros_like
 from torch.utils.data import Dataset
 from torchvision import transforms
 import glob
 from .preprocess_files import face_mask_google_mediapipe
-
+import torch
 OBJECT_TEMPLATE = [
     "a photo of a {}",
     "a rendering of a {}",
@@ -155,7 +155,7 @@ class PivotalTuningDatasetCapation(Dataset):
 
         # Prepare the instance images
         if use_mask_captioned_data:
-            src_imgs = glob.glob(str(instance_data_root) + "/*src.jpg")
+            src_imgs = glob.glob(str(instance_data_root) + "/*src.jpg", recursive=True)
             for f in src_imgs:
                 idx = int(str(Path(f).stem).split(".")[0])
                 mask_path = f"{instance_data_root}/{idx}.mask.png"
@@ -170,16 +170,26 @@ class PivotalTuningDatasetCapation(Dataset):
 
         else:
             possibily_src_images = (
-                glob.glob(str(instance_data_root) + "/*.jpg")
-                + glob.glob(str(instance_data_root) + "/*.png")
-                + glob.glob(str(instance_data_root) + "/*.jpeg")
+                glob.glob(str(instance_data_root) + "/**/*.jpg", recursive=True)
+                + glob.glob(str(instance_data_root) + "/**/*.png", recursive=True)
+                + glob.glob(str(instance_data_root) + "/**/*.jpeg", recursive=True)
             )
+            # print("Images before filtering:", len(possibily_src_images))
+            # mask_images = set(glob.glob(str(instance_data_root) + "/**/*mask.png", recursive=True))
+            # print("Mask images found:", len(mask_images))
+            # caption_files = set([str(instance_data_root) + "/caption.txt"])
+            # print("Caption files found:", len(caption_files))
             possibily_src_images = (
                 set(possibily_src_images)
-                - set(glob.glob(str(instance_data_root) + "/*mask.png"))
+                - set(glob.glob(str(instance_data_root) + "/*mask.png", recursive=True))
                 - set([str(instance_data_root) + "/caption.txt"])
             )
-
+            # print("Images after filtering:", len(possibily_src_images))
+            # 使用glob检查匹配到的文件
+            # print("Matched image files:", glob.glob(str(instance_data_root) + "/**/*.jpg", recursive=True))
+            # print("Matched image files:", glob.glob(str(instance_data_root) + "/**/*.png", recursive=True))
+            # print("Matched image files:", glob.glob(str(instance_data_root) + "/**/*.jpeg", recursive=True))
+            
             self.instance_images_path = list(set(possibily_src_images))
             self.captions = [
                 x.split("/")[-1].split(".")[0] for x in self.instance_images_path
@@ -227,7 +237,7 @@ class PivotalTuningDatasetCapation(Dataset):
 
         self.num_instance_images = len(self.instance_images_path)
         self.token_map = token_map
- 
+
         self.use_template = use_template
         if use_template is not None:
             self.templates = TEMPLATE_MAP[use_template]
@@ -258,6 +268,8 @@ class PivotalTuningDatasetCapation(Dataset):
 
     def __getitem__(self, index):
         example = {}
+        image_path =self.instance_images_path[index % self.num_instance_images]
+        print("image path: ",image_path )
         instance_image = Image.open(
             self.instance_images_path[index % self.num_instance_images]
         )
@@ -270,11 +282,13 @@ class PivotalTuningDatasetCapation(Dataset):
                 example["instance_masks"],
                 example["instance_masked_images"],
             ) = _generate_random_mask(example["instance_images"])
-
+       
         if self.use_template:
             assert self.token_map is not None
-            input_tok = list(self.token_map.values())[0]
-
+             
+            input_tok = os.path.basename(os.path.dirname(image_path))
+            print("input_tok: ", input_tok)  
+         
             text = random.choice(self.templates).format(input_tok)
         else:
             text = self.captions[index % self.num_instance_images].strip()
@@ -283,7 +297,7 @@ class PivotalTuningDatasetCapation(Dataset):
                 for token, value in self.token_map.items():
                     text = text.replace(token, value)
 
-        print(text)
+        print("caption: ",text)
 
         if self.use_mask:
             example["mask"] = (
@@ -307,5 +321,6 @@ class PivotalTuningDatasetCapation(Dataset):
             truncation=True,
             max_length=self.tokenizer.model_max_length,
         ).input_ids
-
+        
+       
         return example
