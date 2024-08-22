@@ -153,6 +153,7 @@ def text2img_dataloader(
             cached_latents_dataset.append(batch)
 
     def collate_fn(examples):
+
         input_ids = [example["instance_prompt_ids"] for example in examples]
         pixel_values = [example["instance_images"] for example in examples]
         pixel_values = torch.stack(pixel_values)
@@ -201,6 +202,7 @@ def inpainting_dataloader(
     train_dataset, train_batch_size, tokenizer, vae, text_encoder
 ):
     def collate_fn(examples):
+        import pdb; pdb.set_trace()
         input_ids = [example["instance_prompt_ids"] for example in examples]
         pixel_values = [example["instance_images"] for example in examples]
         mask_values = [example["instance_masks"] for example in examples]
@@ -236,7 +238,10 @@ def inpainting_dataloader(
             max_length=tokenizer.model_max_length,
             return_tensors="pt",
         ).input_ids
-
+        # 进行解码
+        decoded_texts = [tokenizer.decode(ids, skip_special_tokens=True) for ids in input_ids]
+        # 打印每个样本的文本提示
+        for i, text in enumerate(decoded_texts):
         batch = {
             "input_ids": input_ids,
             "pixel_values": pixel_values,
