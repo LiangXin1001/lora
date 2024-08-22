@@ -33,7 +33,7 @@ from tqdm.auto import tqdm
 from transformers import CLIPTextModel, CLIPTokenizer
 import wandb
 import fire
-
+torch.cuda.empty_cache() 
 from lora_diffusion import (
     PivotalTuningDatasetCapation,
     extract_lora_ups_down,
@@ -1044,4 +1044,6 @@ def train(
 
 
 def main():
+    torch.cuda.empty_cache() 
     fire.Fire(train)
+    torch.cuda.empty_cache() 
